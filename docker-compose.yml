@@ -1,85 +1,30 @@
+# Docker используется только для баз данных.
+# Сами сервисы запускаются локально из собранных jar-файлов (см. README).
 services:
   stats-db:
     image: postgres:16.1
-    container_name: stats-db
     environment:
-      POSTGRES_DB: stats
-      POSTGRES_USER: stats
-      POSTGRES_PASSWORD: stats
+      POSTGRES_DB: ewm_stats_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
     ports:
-      - "5432:5432"
+      - "5433:5432"
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U stats -d stats" ]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ewm_stats_db"]
       interval: 5s
       timeout: 5s
       retries: 10
-
-  stats-server:
-    build:
-      context: stats/stats-server
-      dockerfile: Dockerfile
-    container_name: stats-server
-    ports:
-      - "9090:9090"
-    environment:
-      SERVER_PORT: 9090
-      SPRING_DATASOURCE_URL: jdbc:postgresql://stats-db:5432/stats
-      SPRING_DATASOURCE_USERNAME: stats
-      SPRING_DATASOURCE_PASSWORD: stats
-    depends_on:
-      stats-db:
-        condition: service_healthy
-
-  ewm-service:
-    build:
-      context: core/ewm-main-service
-      dockerfile: Dockerfile
-    container_name: ewm-service
-    ports:
-      - "8080:8080"
-    environment:
-      SERVER_PORT: 8080
-      SPRING_DATASOURCE_URL: jdbc:postgresql://ewm-db:5432/ewm
-      SPRING_DATASOURCE_USERNAME: ewm
-      SPRING_DATASOURCE_PASSWORD: ewm
-      STATS_SERVER_URL: http://stats-server:9090
-    depends_on:
-      ewm-db:
-        condition: service_healthy
-      stats-server:
-        condition: service_started
-
-  explore-gateway:
-    build:
-      context: explore-gateway
-      dockerfile: Dockerfile
-    container_name: explore-gateway
-    ports:
-      - "7070:7070"
-    environment:
-      EWM_MAIN_SERVICE_URL: http://ewm-service:8080
-      STATS_SERVER_URL: http://stats-server:9090
-    depends_on:
-      ewm-service:
-        condition: service_started
-      stats-server:
-        condition: service_started
 
   ewm-db:
     image: postgres:16.1
     environment:
-      POSTGRES_DB: ewm
-      POSTGRES_USER: ewm
-      POSTGRES_PASSWORD: ewm
+      POSTGRES_DB: ewm_main_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
     ports:
-      - "6542:5432"
-    volumes:
-      - ewm-db-data:/var/lib/postgresql/data
+      - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ewm -d ewm"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ewm_main_db"]
       interval: 5s
       timeout: 5s
       retries: 10
-
-volumes:
-  ewm-db-data:

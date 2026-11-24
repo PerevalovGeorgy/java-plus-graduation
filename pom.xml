@@ -21,7 +21,6 @@
 		<module>infra</module>
 		<module>core</module>
 		<module>stats</module>
-		<module>explore-gateway</module>
 	</modules>
 
 	<properties>

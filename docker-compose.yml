@@ -1,14 +1,30 @@
+# Docker используется только для баз данных.
+# Сами сервисы запускаются локально из собранных jar-файлов (см. README).
 services:
-  stats-server:
-    ports:
-      - "9090:9090"
-
   stats-db:
     image: postgres:16.1
-
-  ewm-service:
+    environment:
+      POSTGRES_DB: ewm_stats_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
     ports:
-      - "8080:8080"
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ewm_stats_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   ewm-db:
     image: postgres:16.1
+    environment:
+      POSTGRES_DB: ewm_main_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ewm_main_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
